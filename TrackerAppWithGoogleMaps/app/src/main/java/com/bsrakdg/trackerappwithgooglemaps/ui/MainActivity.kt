@@ -1,8 +1,8 @@
-package com.bsrakdg.trackerappwithgooglemaps
+package com.bsrakdg.trackerappwithgooglemaps.ui
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
+import com.bsrakdg.trackerappwithgooglemaps.R
 import com.bsrakdg.trackerappwithgooglemaps.db.RunDAO
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -16,6 +16,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        Log.d("runDao", "RUNDAO: ${runDao.hashCode()}")
+
     }
 }

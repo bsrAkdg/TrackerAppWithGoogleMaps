@@ -1,5 +1,8 @@
-
-Sort
+Sorting :
 ** Data class
 ** DAO
-**
+** Dagger
+** Repository
+** Fragments
+** ViewModels
+** Navigation Components
