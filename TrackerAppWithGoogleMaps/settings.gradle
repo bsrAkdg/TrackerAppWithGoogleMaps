@@ -1,0 +1,2 @@
+rootProject.name='TrackerAppWithGoogleMaps'
+include ':app'
