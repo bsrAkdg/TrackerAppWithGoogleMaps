@@ -14,4 +14,8 @@ import androidx.room.TypeConverters
 abstract class RunningDatabase : RoomDatabase() {
 
     abstract fun getRunDao(): RunDAO
+
+    companion object {
+        const val RUNNING_DATABASE_NAME = "running_db"
+    }
 }
