@@ -6,3 +6,12 @@ Sorting :
 ** Fragments
 ** ViewModels
 ** Navigation Components
+** Permissions
+** Map Lifecycle
+**
+
+
+
+** There are two ways of using Google maps in your app. The first one is using MapView, the second one is MapFragment.
+Google Map has its own lifecycle. If you use a MapView in a fragment you have to worry about your Google Map Lifecycle.
+However, if you use a MapFragment you shouldn't worry about lifecycle of MapView.
