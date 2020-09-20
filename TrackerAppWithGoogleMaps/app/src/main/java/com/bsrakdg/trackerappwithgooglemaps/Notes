@@ -8,10 +8,25 @@ Sorting :
 ** Navigation Components
 ** Permissions
 ** Map Lifecycle
-**
-
+** Service setup
+** Notification <-> Activity communication
 
 
 ** There are two ways of using Google maps in your app. The first one is using MapView, the second one is MapFragment.
 Google Map has its own lifecycle. If you use a MapView in a fragment you have to worry about your Google Map Lifecycle.
 However, if you use a MapFragment you shouldn't worry about lifecycle of MapView.
+
+** Foreground service must come with a notification. Android system can't kill this service in low memory case.
+
+** Making our service a foreground service :
+
+    1. Firstly, create custom service class which extends from LifecycleService.
+    2. Override onStartCommand function and handle your intent action.
+    3. If action is ACTION_START_OR_RESUME_SERVICE, and its first run then call startForegroundService()
+    4. In startForegroundService() method create a notificationManager and a notificationBuilder.
+    If your version greater than Oreo create a notification channel and start your foreground service
+    with your NOTIFICATION_ID and your builder.
+    5. When you click your notification, MainActivity have to open. For this reason we must create
+    a pending intent. You have to add an action for Intent because we have to detach that we should open
+    TrackingFragment in this case.
+    6. This Intent should be handle in MainActivity to open TrackingFragment in onCreate() and onNewIntent() methods.
