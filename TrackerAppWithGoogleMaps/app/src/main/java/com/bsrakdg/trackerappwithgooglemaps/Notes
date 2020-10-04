@@ -18,7 +18,7 @@ However, if you use a MapFragment you shouldn't worry about lifecycle of MapView
 
 ** Foreground service must come with a notification. Android system can't kill this service in low memory case.
 
-** Making our service a foreground service :
+** Making our service (TrackingService) a foreground service :
 
     1. Firstly, create custom service class which extends from LifecycleService.
     2. Override onStartCommand function and handle your intent action.
