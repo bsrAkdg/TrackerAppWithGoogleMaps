@@ -80,12 +80,12 @@ class TrackingService : LifecycleService() {
                         isFirstRun = false
                     } else {
                         Timber.d("Resuming the service ...")
+                        startForegroundService()
                     }
-
-                    Timber.d("Started or Resumed Service")
                 }
                 ACTION_PAUSE_SERVICE -> {
                     Timber.d("Paused Service")
+                    pauseService()
                 }
                 ACTION_STOP_SERVICE -> {
                     Timber.d("Stopped Service")
@@ -93,6 +93,10 @@ class TrackingService : LifecycleService() {
             }
         }
         return super.onStartCommand(intent, flags, startId)
+    }
+
+    private fun pauseService() {
+        isTracking.postValue(false)
     }
 
     // requestLocationUpdates function doesn't handle third party request permission
