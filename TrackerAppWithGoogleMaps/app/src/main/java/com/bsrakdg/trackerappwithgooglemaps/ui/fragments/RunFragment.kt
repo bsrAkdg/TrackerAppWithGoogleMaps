@@ -8,11 +8,11 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.bsrakdg.trackerappwithgooglemaps.R
+import com.bsrakdg.trackerappwithgooglemaps.databinding.FragmentRunBinding
 import com.bsrakdg.trackerappwithgooglemaps.ui.viewmodels.MainViewModel
 import com.bsrakdg.trackerappwithgooglemaps.utils.Constants.REQUEST_CODE_LOCATION_PERMISSION
 import com.bsrakdg.trackerappwithgooglemaps.utils.TrackingUtil
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.android.synthetic.main.fragment_run.*
 import pub.devrel.easypermissions.AppSettingsDialog
 import pub.devrel.easypermissions.EasyPermissions
 
@@ -26,13 +26,15 @@ import pub.devrel.easypermissions.EasyPermissions
 class RunFragment : Fragment(R.layout.fragment_run), EasyPermissions.PermissionCallbacks {
 
     private val viewModel: MainViewModel by viewModels()
+    private lateinit var binding: FragmentRunBinding
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        binding = FragmentRunBinding.bind(view)
 
         requestPermissions()
 
-        fab.setOnClickListener {
+        binding.fab.setOnClickListener {
             findNavController().navigate(R.id.action_runFragment_to_trackingFragment)
         }
     }
@@ -51,6 +53,7 @@ class RunFragment : Fragment(R.layout.fragment_run), EasyPermissions.PermissionC
                 Manifest.permission.ACCESS_FINE_LOCATION
             )
         } else {
+            // FIXME: 20.01.2021 For Api 30 with ACCESS_BACKGROUND_LOCATION
             EasyPermissions.requestPermissions(
                 this,
                 "You need to accept location permissions to use this app.",

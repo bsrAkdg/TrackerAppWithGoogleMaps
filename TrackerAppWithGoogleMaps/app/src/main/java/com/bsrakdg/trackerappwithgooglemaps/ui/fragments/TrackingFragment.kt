@@ -8,6 +8,7 @@ import android.view.View.VISIBLE
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.bsrakdg.trackerappwithgooglemaps.R
+import com.bsrakdg.trackerappwithgooglemaps.databinding.FragmentTrackingBinding
 import com.bsrakdg.trackerappwithgooglemaps.services.Polyline
 import com.bsrakdg.trackerappwithgooglemaps.services.TrackingService
 import com.bsrakdg.trackerappwithgooglemaps.ui.viewmodels.MainViewModel
@@ -20,7 +21,6 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.PolylineOptions
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.android.synthetic.main.fragment_tracking.*
 
 @AndroidEntryPoint
 class TrackingFragment : Fragment(R.layout.fragment_tracking) {
@@ -32,15 +32,19 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
     private var isTracking = false
     private var pathPoints = mutableListOf<Polyline>()
 
+    private lateinit var binding: FragmentTrackingBinding
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        mapView.onCreate(savedInstanceState)
+        binding = FragmentTrackingBinding.bind(view)
 
-        btnToggleRun.setOnClickListener {
+        binding.mapView.onCreate(savedInstanceState)
+
+        binding.btnToggleRun.setOnClickListener {
             toggleRun()
         }
 
-        mapView.getMapAsync {
+        binding.mapView.getMapAsync {
             map = it
             addAllPolyline() // when we rotate fragment or device that gets called
         }
@@ -71,11 +75,11 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
     private fun updateTracking(isTracking: Boolean) {
         this.isTracking = isTracking
         if (!isTracking) {
-            btnToggleRun.text = getString(R.string.start_tracking)
-            btnFinishRun.visibility = VISIBLE
+            binding.btnToggleRun.text = getString(R.string.start_tracking)
+            binding.btnFinishRun.visibility = VISIBLE
         } else {
-            btnToggleRun.text = getString(R.string.stop_tracking)
-            btnFinishRun.visibility = GONE
+            binding.btnToggleRun.text = getString(R.string.stop_tracking)
+            binding.btnFinishRun.visibility = GONE
         }
     }
 
@@ -124,31 +128,31 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
 
     override fun onResume() {
         super.onResume()
-        mapView?.onResume()
+        binding.mapView.onResume()
     }
 
     override fun onStart() {
         super.onStart()
-        mapView?.onStart()
+        binding.mapView.onStart()
     }
 
     override fun onStop() {
         super.onStop()
-        mapView?.onStop()
+        binding.mapView.onStop()
     }
 
     override fun onPause() {
         super.onPause()
-        mapView?.onPause()
+        binding.mapView.onPause()
     }
 
     override fun onLowMemory() {
         super.onLowMemory()
-        mapView?.onLowMemory()
+        binding.mapView.onLowMemory()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        mapView?.onSaveInstanceState(outState)
+        binding.mapView.onSaveInstanceState(outState)
     }
 }

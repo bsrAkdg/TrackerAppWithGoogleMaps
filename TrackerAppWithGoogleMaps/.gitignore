@@ -15,3 +15,4 @@
 /.idea/
 /gradle/wrapper/
 /gradle.properties
+/secure.properties
