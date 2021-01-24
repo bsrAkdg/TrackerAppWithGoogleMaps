@@ -30,6 +30,7 @@
     <string name="menu_cancel_tracking_message">Are you sure to cancel the current run and delete all its data?</string>
     <string name="menu_cancel_tracking_yes">Yes</string>
     <string name="menu_cancel_tracking_no">No</string>
+    <string name="tracking_saved">Run saved successfully</string>
     <string-array name="filter_options">
         <item>Date</item>
         <item>Running Time</item>
