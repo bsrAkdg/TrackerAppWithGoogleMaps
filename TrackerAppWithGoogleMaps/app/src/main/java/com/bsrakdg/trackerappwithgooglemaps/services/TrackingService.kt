@@ -15,7 +15,6 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
 import com.bsrakdg.trackerappwithgooglemaps.R
 import com.bsrakdg.trackerappwithgooglemaps.utils.Constants
 import com.bsrakdg.trackerappwithgooglemaps.utils.Constants.ACTION_PAUSE_SERVICE
@@ -52,6 +51,7 @@ typealias Polylines = MutableList<Polyline> // ... ... ...
 class TrackingService : LifecycleService() {
 
     var isFirstRun = true
+    var serviceKilled = false
 
     @Inject
     lateinit var fusedLocationProviderClient: FusedLocationProviderClient
@@ -61,7 +61,7 @@ class TrackingService : LifecycleService() {
     @Inject
     lateinit var baseNotificationBuilder: NotificationCompat.Builder
 
-    lateinit var currentNotificationBuilder : NotificationCompat.Builder
+    lateinit var currentNotificationBuilder: NotificationCompat.Builder
 
     companion object {
         val timeRunInMillis = MutableLiveData<Long>()
@@ -109,6 +109,7 @@ class TrackingService : LifecycleService() {
                 }
                 ACTION_STOP_SERVICE -> {
                     Timber.d("Stopped Service")
+                    killService()
                 }
             }
         }
@@ -145,6 +146,15 @@ class TrackingService : LifecycleService() {
         }
     }
 
+    private fun killService() {
+        serviceKilled = true
+        isFirstRun = true
+        pauseService()
+        postInitialValues()
+        stopForeground(true) // notification stop
+        stopSelf() // service stop
+    }
+
     private fun pauseService() {
         isTracking.postValue(false)
         isTimerEnabled = false
@@ -165,16 +175,19 @@ class TrackingService : LifecycleService() {
             PendingIntent.getService(this, 1, resumeIntent, FLAG_UPDATE_CURRENT)
         }
 
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager =
+            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         currentNotificationBuilder.javaClass.getDeclaredField("mActions").apply {
             isAccessible = true
             set(currentNotificationBuilder, arrayListOf<NotificationCompat.Action>())
         }
 
-        currentNotificationBuilder = baseNotificationBuilder
-            .addAction(R.drawable.ic_pause, notificationActionText, pendingIntent)
-        notificationManager.notify(NOTIFICATION_ID, currentNotificationBuilder.build())
+        if (!serviceKilled) {
+            currentNotificationBuilder = baseNotificationBuilder
+                .addAction(R.drawable.ic_pause, notificationActionText, pendingIntent)
+            notificationManager.notify(NOTIFICATION_ID, currentNotificationBuilder.build())
+        }
     }
 
     // requestLocationUpdates function doesn't handle third party request permission
@@ -246,10 +259,12 @@ class TrackingService : LifecycleService() {
 
         startForeground(NOTIFICATION_ID, baseNotificationBuilder.build())
 
-        timeRunInSeconds.observe(this, Observer {
-            val notification = currentNotificationBuilder
-                .setContentText(TrackingUtil.getFormattedStopWatchTime(it * 1000L))
-            notificationManager.notify(NOTIFICATION_ID, notification.build())
+        timeRunInSeconds.observe(this, {
+            if (!serviceKilled) {
+                val notification = currentNotificationBuilder
+                    .setContentText(TrackingUtil.getFormattedStopWatchTime(it * 1000L))
+                notificationManager.notify(NOTIFICATION_ID, notification.build())
+            }
         })
     }
 
