@@ -59,23 +59,25 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding = FragmentTrackingBinding.bind(view)
+        binding = FragmentTrackingBinding.bind(view).apply {
 
-        binding.mapView.onCreate(savedInstanceState)
+            mapView.onCreate(savedInstanceState)
 
-        binding.btnToggleRun.setOnClickListener {
-            toggleRun()
+            btnToggleRun.setOnClickListener {
+                toggleRun()
+            }
+
+            btnFinishRun.setOnClickListener {
+                zoomToSeeWholeTrack()
+                endRunAndSaveToDb()
+            }
+
+            mapView.getMapAsync {
+                map = it
+                addAllPolyline() // when we rotate fragment or device that gets called
+            }
         }
 
-        binding.btnFinishRun.setOnClickListener {
-            zoomToSeeWholeTrack()
-            endRunAndSaveToDb()
-        }
-
-        binding.mapView.getMapAsync {
-            map = it
-            addAllPolyline() // when we rotate fragment or device that gets called
-        }
 
         subscribeToObservers()
     }
@@ -142,7 +144,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
                 bounds.build(),
                 binding.mapView.width,
                 binding.mapView.height,
-                (binding.mapView.height * 0.0f).toInt()
+                (binding.mapView.height * 0.05f).toInt()
             )
         )
     }
@@ -150,11 +152,11 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
     private fun endRunAndSaveToDb() {
         map?.snapshot { bmp ->
             var distanceInMeters = 0
-            for (polyline in pathPoints) {
-                distanceInMeters += TrackingUtil.calculatePolylineLength(polyline).toInt()
+            pathPoints.map {
+                distanceInMeters += TrackingUtil.calculatePolylineLength(it).toInt()
             }
             val avgSpeed =
-                round(distanceInMeters / 1000f) / (curTimeInMillis / 1000f / 60 / 60) * 10f
+                round((distanceInMeters / 1000f) / (curTimeInMillis / 1000f / 60 / 60) * 10) / 10f
             val dateTimestamp = Calendar.getInstance().timeInMillis
             val caloriesBurned = ((distanceInMeters / 1000f) * weight).toInt()
             val run =

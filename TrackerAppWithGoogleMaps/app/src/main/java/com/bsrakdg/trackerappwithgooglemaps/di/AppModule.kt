@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.room.Room
 import com.bsrakdg.trackerappwithgooglemaps.db.RunningDatabase
 import com.bsrakdg.trackerappwithgooglemaps.db.RunningDatabase.Companion.RUNNING_DATABASE_NAME
+import com.bumptech.glide.Glide
+import com.bumptech.glide.RequestManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -28,4 +30,8 @@ object AppModule {
     @Singleton
     @Provides
     fun provideRunDao(db: RunningDatabase) = db.getRunDao()
+
+    @Singleton
+    @Provides
+    fun provideGlide(@ApplicationContext context: Context): RequestManager = Glide.with(context)
 }
