@@ -31,6 +31,7 @@
     <string name="menu_cancel_tracking_yes">Yes</string>
     <string name="menu_cancel_tracking_no">No</string>
     <string name="tracking_saved">Run saved successfully</string>
+    <string name="enter_all_fields">Please enter all fields</string>
     <string-array name="filter_options">
         <item>Date</item>
         <item>Running Time</item>
