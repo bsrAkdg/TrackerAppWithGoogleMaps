@@ -34,6 +34,11 @@
     <string name="enter_all_fields">Please enter all fields</string>
     <string name="fill_out_fields">Please fill out all the fields</string>
     <string name="saved_changes">Saved changes</string>
+    <string name="date">DATE</string>
+    <string name="duration">DURATION</string>
+    <string name="avg_speed">AVG SPEED</string>
+    <string name="distance">DISTANCE</string>
+    <string name="calories_burned">CALORIES BURNED</string>
     <string-array name="filter_options">
         <item>Date</item>
         <item>Running Time</item>
