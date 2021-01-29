@@ -17,6 +17,7 @@ import com.bsrakdg.trackerappwithgooglemaps.ui.viewmodels.MainViewModel
 import com.bsrakdg.trackerappwithgooglemaps.utils.Constants.ACTION_PAUSE_SERVICE
 import com.bsrakdg.trackerappwithgooglemaps.utils.Constants.ACTION_START_OR_RESUME_SERVICE
 import com.bsrakdg.trackerappwithgooglemaps.utils.Constants.ACTION_STOP_SERVICE
+import com.bsrakdg.trackerappwithgooglemaps.utils.Constants.CANCEL_TRACKING_DIALOG_TAG
 import com.bsrakdg.trackerappwithgooglemaps.utils.Constants.MAP_ZOOM
 import com.bsrakdg.trackerappwithgooglemaps.utils.Constants.POLYLINE_COLOR
 import com.bsrakdg.trackerappwithgooglemaps.utils.Constants.POLYLINE_WIDTH
@@ -69,6 +70,14 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
                 toggleRun()
             }
 
+            if (savedInstanceState != null) {
+                val cancelTrackingDialog = parentFragmentManager.findFragmentByTag(
+                    CANCEL_TRACKING_DIALOG_TAG) as CancelTrackingDialog?
+                cancelTrackingDialog?.setYesListener {
+                    stopRun()
+                }
+            }
+
             btnFinishRun.setOnClickListener {
                 zoomToSeeWholeTrack()
                 endRunAndSaveToDb()
@@ -113,10 +122,10 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
 
     private fun updateTracking(isTracking: Boolean) {
         this.isTracking = isTracking
-        if (!isTracking) {
+        if (!isTracking && curTimeInMillis > 0L) {
             binding.btnToggleRun.text = getString(R.string.start_tracking)
             binding.btnFinishRun.visibility = VISIBLE
-        } else {
+        } else if(isTracking) {
             binding.btnToggleRun.text = getString(R.string.stop_tracking)
             menu?.getItem(0)?.isVisible = true
             binding.btnFinishRun.visibility = GONE
@@ -260,21 +269,15 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
     }
 
     private fun showCancelTrackingDialog() {
-        val dialog = MaterialAlertDialogBuilder(requireContext(), R.style.AlertDialogTheme)
-            .setTitle(getString(R.string.menu_cancel_tracking_title))
-            .setMessage(getString(R.string.menu_cancel_tracking_message))
-            .setIcon(R.drawable.ic_delete)
-            .setPositiveButton(getString(R.string.menu_cancel_tracking_yes)) { _, _ ->
+        CancelTrackingDialog().apply {
+            setYesListener {
                 stopRun()
             }
-            .setNegativeButton(getString(R.string.menu_cancel_tracking_no)) { dialogInterface, _ ->
-                dialogInterface.cancel()
-            }
-            .create()
-        dialog.show()
+        }.show(parentFragmentManager, CANCEL_TRACKING_DIALOG_TAG)
     }
 
     private fun stopRun() {
+        binding.tvTimer.text = getString(R.string.start_time)
         sendCommandToService(ACTION_STOP_SERVICE)
         findNavController().navigate(R.id.action_trackingFragment_to_runFragment)
     }
