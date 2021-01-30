@@ -56,19 +56,21 @@ class TrackingService : LifecycleService() {
     @Inject
     lateinit var fusedLocationProviderClient: FusedLocationProviderClient
 
-    private val timeRunInSeconds = MutableLiveData<Long>() // listen from service
+    private val timeRunInSeconds = MutableLiveData<Long>() // For updating notification test listens by service
 
     @Inject
     lateinit var baseNotificationBuilder: NotificationCompat.Builder
 
     lateinit var currentNotificationBuilder: NotificationCompat.Builder
 
+    // for fragment
     companion object {
         val timeRunInMillis = MutableLiveData<Long>()
         val isTracking = MutableLiveData<Boolean>()
-        val pathPoints = MutableLiveData<Polylines>()
+        val pathPoints = MutableLiveData<Polylines>() // for add new polyline to map
     }
 
+    /** Resets values before start and after stop service */
     private fun postInitialValues() {
         isTracking.postValue(false)
         pathPoints.postValue(mutableListOf()) // empty list
@@ -81,9 +83,10 @@ class TrackingService : LifecycleService() {
         currentNotificationBuilder = baseNotificationBuilder // for change notification text
 
         postInitialValues()
+
         fusedLocationProviderClient = FusedLocationProviderClient(this)
 
-        // this class extends from LifecycleService, you can observe livedata
+        // this class extends from LifecycleService, you can observe live data
         isTracking.observe(this, {
             updateLocationTracking(it)
             updateNotificationTrackingState(it)
@@ -96,18 +99,20 @@ class TrackingService : LifecycleService() {
             when (it.action) {
                 ACTION_START_OR_RESUME_SERVICE -> {
                     if (isFirstRun) {
+                        // start new service
                         startForegroundService()
                         isFirstRun = false
                     } else {
+                        // Resumes service if it has started before
                         Timber.d("Resuming the service ...")
                         startTimer()
                     }
                 }
-                ACTION_PAUSE_SERVICE -> {
+                ACTION_PAUSE_SERVICE -> { // When clicked STOP button
                     Timber.d("Paused Service")
                     pauseService()
                 }
-                ACTION_STOP_SERVICE -> {
+                ACTION_STOP_SERVICE -> { // When clicked FINISH run button
                     Timber.d("Stopped Service")
                     killService()
                 }
@@ -122,6 +127,7 @@ class TrackingService : LifecycleService() {
     private var timeStarted = 0L
     private var lastSecondTimestamp = 0L
 
+    /** Starts timer and updates time variables during tracking to update ui and notification text */
     private fun startTimer() {
         addEmptyPolyline() // first empty polyline
         isTracking.postValue(true)
@@ -147,19 +153,22 @@ class TrackingService : LifecycleService() {
     }
 
     private fun killService() {
-        serviceKilled = true
+        serviceKilled = true // stop notification updates
         isFirstRun = true
-        pauseService()
+        isTimerEnabled = false
         postInitialValues()
-        stopForeground(true) // notification stop
-        stopSelf() // service stop
+        stopForeground(true) // removes notification
+        stopSelf() // stops service
     }
 
+    /** Updates isTracking to trigger fragment and service to take actions */
     private fun pauseService() {
         isTracking.postValue(false)
         isTimerEnabled = false
     }
 
+    /** Updates notification actions and text according to isTracking value.
+     * Creates pending intent for pause or resume for corresponding actions. */
     private fun updateNotificationTrackingState(isTracking: Boolean) {
         val notificationActionText = if (isTracking) "Pause" else "Resume"
 
@@ -190,8 +199,7 @@ class TrackingService : LifecycleService() {
         }
     }
 
-    // requestLocationUpdates function doesn't handle third party request permission
-    // so use SuppressLint to ignore this reason
+    // requestLocationUpdates function doesn't handle third party request permission so use SuppressLint to ignore this reason
     @SuppressLint("MissingPermission")
     private fun updateLocationTracking(isTracking: Boolean) {
         if (isTracking) {
@@ -213,7 +221,7 @@ class TrackingService : LifecycleService() {
         }
     }
 
-    // Handle location changes and when user change location, if user is tracking, add to list.
+    /** Handle location changes when user changes location, if user is tracking add to list */
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(result: LocationResult?) {
             super.onLocationResult(result)
@@ -239,13 +247,13 @@ class TrackingService : LifecycleService() {
         }
     }
 
-    // when user click Stop button while tracking, this method adds an empty polyline in our pathPoints list.
+    /** When user click Stop button while tracking, this method adds an empty polyline in our pathPoints list */
     private fun addEmptyPolyline() = pathPoints.value?.apply {
         add(mutableListOf())
         pathPoints.postValue(this) // empty list, when used apply, you can use this
-    }
-        ?: pathPoints.postValue(mutableListOf(mutableListOf())) // when pathPoints is null, initial empty pathPoints list.
+    } ?: pathPoints.postValue(mutableListOf(mutableListOf())) // when pathPoints is null, initial empty pathPoints list.
 
+    /** Starts timer and shows notification updates */
     private fun startForegroundService() {
         startTimer()
         isTracking.postValue(true)
@@ -268,7 +276,6 @@ class TrackingService : LifecycleService() {
         })
     }
 
-    // Foreground Service
     @RequiresApi(Build.VERSION_CODES.O)
     private fun createNotificationChannel(notificationManager: NotificationManager) {
         val channel = NotificationChannel(

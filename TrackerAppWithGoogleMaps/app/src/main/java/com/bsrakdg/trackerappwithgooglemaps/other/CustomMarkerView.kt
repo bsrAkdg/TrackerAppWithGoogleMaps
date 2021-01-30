@@ -6,49 +6,52 @@ import com.bsrakdg.trackerappwithgooglemaps.databinding.MarkerViewBinding
 import com.bsrakdg.trackerappwithgooglemaps.db.Run
 import com.bsrakdg.trackerappwithgooglemaps.utils.TrackingUtil
 import com.github.mikephil.charting.components.MarkerView
+import com.github.mikephil.charting.utils.MPPointF
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.highlight.Highlight
-import com.github.mikephil.charting.utils.MPPointF
 import java.text.SimpleDateFormat
 import java.util.*
 
 class CustomMarkerView(
     val runs: List<Run>,
     c: Context,
-    layoutId: Int,
+    layoutId: Int
 ) : MarkerView(c, layoutId) {
 
-    private var binding: MarkerViewBinding = MarkerViewBinding.inflate(LayoutInflater.from(context), this, true)
+    var binding: MarkerViewBinding
+
+    init {
+        val inflater = LayoutInflater.from(c)
+        binding = MarkerViewBinding.inflate(inflater, this, true)
+    }
+
+    override fun getOffset(): MPPointF {
+        return MPPointF(-width / 2f, -height.toFloat())
+    }
 
     override fun refreshContent(e: Entry?, highlight: Highlight?) {
         super.refreshContent(e, highlight)
         if (e == null) {
             return
         }
-        val currentRunId = e.x.toInt()
-        val run = runs[currentRunId]
+        val curRunId = e.x.toInt()
+        val run = runs[curRunId]
 
         val calendar = Calendar.getInstance().apply {
             timeInMillis = run.timeStamp
         }
+        val dateFormat = SimpleDateFormat("dd.MM.yy", Locale.getDefault())
+        binding.tvDate.text = dateFormat.format(calendar.time)
 
-        val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
         val avgSpeed = "${run.avgSpeedInKMH}km/h"
+        binding.tvAvgSpeed.text = avgSpeed
+
         val distanceInKm = "${run.distanceInMeters / 1000f}km"
+        binding.tvDistance.text = distanceInKm
+
+        binding.tvDuration.text = TrackingUtil.getFormattedStopWatchTime(run.timeInMillis)
+
         val caloriesBurned = "${run.caloriesBurned}kcal"
-
-        binding.apply {
-            tvDate.text = dateFormat.format(calendar.time)
-            tvAvgSpeed.text = avgSpeed
-            tvDistance.text = distanceInKm
-            tvDuration.text = TrackingUtil.getFormattedStopWatchTime(run.timeInMillis)
-            tvCaloriesBurned.text = caloriesBurned
-        }
-    }
-
-    override fun getOffset(): MPPointF {
-        return MPPointF(-width / 2f, -height.toFloat())
+        binding.tvCaloriesBurned.text = caloriesBurned
     }
 }
-
-

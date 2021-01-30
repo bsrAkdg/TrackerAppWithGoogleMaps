@@ -70,14 +70,6 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
                 toggleRun()
             }
 
-            if (savedInstanceState != null) {
-                val cancelTrackingDialog = parentFragmentManager.findFragmentByTag(
-                    CANCEL_TRACKING_DIALOG_TAG) as CancelTrackingDialog?
-                cancelTrackingDialog?.setYesListener {
-                    stopRun()
-                }
-            }
-
             btnFinishRun.setOnClickListener {
                 zoomToSeeWholeTrack()
                 endRunAndSaveToDb()
@@ -89,6 +81,14 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
             }
         }
 
+        // Handle configuration changes
+        if (savedInstanceState != null) {
+            val cancelTrackingDialog = parentFragmentManager.findFragmentByTag(
+                CANCEL_TRACKING_DIALOG_TAG) as CancelTrackingDialog?
+            cancelTrackingDialog?.setYesListener {
+                stopRun()
+            }
+        }
 
         subscribeToObservers()
     }
@@ -111,15 +111,19 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
         })
     }
 
+    /** This method triggers service to start/resume or pause timer and listening location updates */
     private fun toggleRun() {
         if (isTracking) {
-            menu?.getItem(0)?.isVisible = true
+            // Pause service
+            menu?.getItem(0)?.isVisible = true // X button visible
             sendCommandToService(ACTION_PAUSE_SERVICE)
         } else {
+            // Start service
             sendCommandToService(ACTION_START_OR_RESUME_SERVICE)
         }
     }
 
+    /** Listens service state and updates ui */
     private fun updateTracking(isTracking: Boolean) {
         this.isTracking = isTracking
         if (!isTracking && curTimeInMillis > 0L) {
@@ -132,6 +136,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
         }
     }
 
+    /** Moves camera to user's location when location is updated */
     private fun moveCameraToUser() {
         if (pathPoints.isNotEmpty() && pathPoints.last().isNotEmpty()) {
             map?.animateCamera(
@@ -143,6 +148,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
         }
     }
 
+    /** When run is finished, zooms out map to cover all tracking paths */
     private fun zoomToSeeWholeTrack() {
         val bounds = LatLngBounds.Builder()
         for (polyline in pathPoints) {
@@ -160,6 +166,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
         )
     }
 
+    /** When run is finished, saves run data with map's snapshot to db */
     private fun endRunAndSaveToDb() {
         map?.snapshot { bmp ->
             var distanceInMeters = 0
@@ -184,6 +191,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
         }
     }
 
+    /** Draws path on map when page is brought to foreground (notification click) */
     private fun addAllPolyline() {
         pathPoints.map {
             val polylineOptions = PolylineOptions()
@@ -195,6 +203,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
         }
     }
 
+    /** Draws latest path on map when location is updated */
     private fun addLatestPolyline() {
         if (pathPoints.isNotEmpty() && pathPoints.last().size > 1) {
             val preLastLatLng = pathPoints.last()[pathPoints.last().size - 2]
@@ -268,6 +277,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
         return super.onOptionsItemSelected(item)
     }
 
+    /** Shows cancel tracking dialog when user clicks cancel button from menu*/
     private fun showCancelTrackingDialog() {
         CancelTrackingDialog().apply {
             setYesListener {
@@ -276,6 +286,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
         }.show(parentFragmentManager, CANCEL_TRACKING_DIALOG_TAG)
     }
 
+    /** Stops run and returs to run fragment */
     private fun stopRun() {
         binding.tvTimer.text = getString(R.string.start_time)
         sendCommandToService(ACTION_STOP_SERVICE)
